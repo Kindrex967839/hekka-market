@@ -1,0 +1,34 @@
+Task List (Tasks: T1 thru T8)
+
+T1.Create landing page for HEKKA MARKET with featured products
+Description
+Design and implement the Home page with bold maximalist styling, featuring a hero section, search functionality, and a grid of featured product cards. Include navigation bar with key sections and a vibrant color palette. Definition of done: Landing page with static featured products and working navigation.
+
+
+T2.Set up Supabase project and database schema
+Description
+Create a new Supabase project, configure the database schema for users, products, categories, and messages. Set up the necessary tables, relationships, and indexes. Include RLS policies for proper data security. Definition of done: Functioning Supabase project with tables created and accessible from the app.
+
+T3.Implement Supabase authentication and user profiles
+Description
+Integrate Supabase Auth for user registration and login. Create profile pages with ability to view/edit basic profile information. Set up proper routes for authentication flow. Definition of done: Working sign up, login, and basic profile management functionality.
+
+T4.Create product listing API and database functions
+Description
+Develop API endpoints for creating, retrieving, updating, and deleting product listings. Implement proper validation and error handling. Create necessary Supabase database functions and triggers. Definition of done: Functional API that handles all CRUD operations for product listings.
+
+T5.Build product creation and management UI
+Description
+Create interface for users to create and manage their product listings. Include form for product details (title, description, price, type), image upload functionality, and product status management. Definition of done: Users can create, edit, and delete their own product listings with images.
+
+T6.Implement product search and filtering functionality
+Description
+Develop search functionality with filters for categories, price ranges, and product types. Create UI components for search bar and filter sidebar. Implement proper indexing on the database for efficient searches. Definition of done: Users can search and filter products with responsive results.
+
+T7.Set up Supabase Storage for product images
+Description
+Configure Supabase Storage buckets for product images with proper access controls. Implement frontend code for uploading, retrieving, and displaying images. Set up proper optimization and validation for uploads. Definition of done: Images can be uploaded, stored, and retrieved securely with proper display in product listings.
+
+T8.Integrate Lemon Squeezy for payment processing
+Description
+Set up Lemon Squeezy account and configure for digital product sales. Implement checkout flow for purchasing products, handling successful purchases, and managing access to purchased content. Definition of done: Users can purchase products with Lemon Squeezy integration and receive confirmation.
