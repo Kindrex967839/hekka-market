@@ -66,7 +66,7 @@ export const featuredProducts: Product[] = [
     title: "Video Editing Masterclass",
     description: "10-hour course covering advanced techniques for professional video production.",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1574717024453-354056013f39?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
     category: "Courses",
     seller: {
       id: "seller6",
@@ -90,7 +90,7 @@ export const featuredProducts: Product[] = [
     title: "Productivity Dashboard Template",
     description: "Comprehensive Notion template with custom widgets for maximum productivity.",
     price: 14.99,
-    image: "https://images.unsplash.com/photo-1611224885990-ab7363d7c9df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
     category: "Templates",
     seller: {
       id: "seller8",

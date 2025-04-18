@@ -17,6 +17,7 @@ const SignUp = lazy(() => import("./pages/CustomSignUp.tsx"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail.tsx"));
 const VerifyEmailLink = lazy(() => import("./pages/VerifyEmailLink.tsx"));
 const SignUpComplete = lazy(() => import("./pages/SignUpComplete.tsx"));
+const FactorOnePage = lazy(() => import("./pages/FactorOnePage.tsx"));
 
 export const userRoutes: RouteObject[] = [
 	// Main routes
@@ -33,6 +34,14 @@ export const userRoutes: RouteObject[] = [
 		element: (
 			<Suspense fallback={<Loading />}>
 				<SignIn />
+			</Suspense>
+		)
+	},
+	{
+		path: "/sign-in/factor-one",
+		element: (
+			<Suspense fallback={<Loading />}>
+				<FactorOnePage />
 			</Suspense>
 		)
 	},

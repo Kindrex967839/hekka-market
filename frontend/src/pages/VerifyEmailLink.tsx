@@ -20,10 +20,10 @@ export default function VerifyEmailLink() {
     if (clerkStatus === 'client_mismatch') {
       setVerificationStatus('client_mismatch');
     } else if (clerkStatus === 'verified') {
-      // If already verified from the URL parameter, set success and redirect to login
+      // If already verified from the URL parameter, set success and redirect to home
       setVerificationStatus('success');
       setTimeout(() => {
-        navigate('/sign-in');
+        window.location.href = '/';
       }, 2000);
     }
   }, [location, navigate]);
@@ -35,16 +35,17 @@ export default function VerifyEmailLink() {
       try {
         // Handle the email link verification
         await handleEmailLinkVerification({
-          redirectUrl: `${window.location.origin}/sign-in`,
-          redirectUrlComplete: `${window.location.origin}/sign-in`
+          redirectUrl: `${window.location.origin}/`,
+          redirectUrlComplete: `${window.location.origin}/`
         });
 
         // If we get here, verification was successful
         setVerificationStatus('success');
 
-        // Redirect to sign-in after a short delay
+        // Redirect to home page after a short delay
+        // This will ensure the user is properly signed in
         setTimeout(() => {
-          navigate('/sign-in');
+          window.location.href = '/';
         }, 2000);
       } catch (err: any) {
         console.error("Email link verification error:", err);

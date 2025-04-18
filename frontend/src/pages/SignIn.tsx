@@ -1,11 +1,36 @@
-import React from "react";
-import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
+import React, { useEffect } from "react";
+import { useClerk } from "@clerk/clerk-react";
+import { CustomSignInForm } from "../components/CustomSignInForm";
 import { Nav } from "components/Nav";
 import { Footer } from "components/Footer";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthBackground } from "components/AuthBackground";
 
 export default function SignIn() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useClerk();
+
+  // Log the current path to help with debugging
+  console.log('SignIn component rendered with path:', location.pathname);
+
+  // Handle factor-one path if it somehow gets here
+  useEffect(() => {
+    if (location.pathname.includes('factor-one')) {
+      // If we're on the factor-one path, sign out and redirect to sign-in
+      const handleFactorOne = async () => {
+        try {
+          await signOut();
+          navigate('/sign-in', { replace: true });
+        } catch (error) {
+          console.error('Error handling factor-one redirect:', error);
+        }
+      };
+
+      handleFactorOne();
+    }
+  }, [location.pathname, navigate, signOut]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Nav />
@@ -28,33 +53,7 @@ export default function SignIn() {
             </div>
 
             <div className="w-full">
-              <ClerkSignIn
-                routing="path"
-                path="/sign-in"
-                signUpUrl="/sign-up"
-                appearance={{
-                  layout: {
-                    socialButtonsVariant: "iconButton",
-                    socialButtonsPlacement: "bottom",
-                    showOptionalFields: false,
-                  },
-                  elements: {
-                    formButtonPrimary: "bg-[#ff3b9a] hover:bg-[#ff3b9a]/80 text-white w-full py-3 rounded-lg font-medium",
-                    formFieldInput: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff3b9a] focus:border-transparent",
-                    formFieldLabel: "block text-sm font-medium text-gray-700 mb-1",
-                    card: "shadow-none",
-                    header: "hidden",
-                    footer: "hidden",
-                    dividerLine: "bg-gray-200",
-                    dividerText: "text-gray-500 text-sm",
-                    socialButtonsIconButton: "border border-gray-300 p-2 rounded-lg hover:bg-gray-50",
-                    socialButtonsBlockButton: "hidden",
-                    formFieldAction: "text-[#ff3b9a] text-sm font-medium",
-                    footerActionLink: "text-[#ff3b9a] hover:text-[#ff3b9a]/80 font-medium",
-                    identityPreviewEditButton: "text-[#ff3b9a] text-sm font-medium",
-                  },
-                }}
-              />
+              <CustomSignInForm />
 
               <div className="mt-6 text-center">
                 <p className="text-gray-600 text-sm">

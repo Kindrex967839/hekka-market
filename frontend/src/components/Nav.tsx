@@ -1,11 +1,35 @@
-import React, { startTransition } from "react";
+import React, { startTransition, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, useUser, SignOutButton } from "@clerk/clerk-react";
+import { useAuth, useUser, SignOutButton, useClerk } from "@clerk/clerk-react";
 
 export function Nav() {
   const navigate = useNavigate();
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const clerk = useClerk();
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Force a refresh when the component mounts or when the URL changes
+  useEffect(() => {
+    // Check if we're coming from a verification page
+    if (document.referrer.includes('verify-email')) {
+      console.log('Coming from verification page, refreshing auth state...');
+      // Force a session refresh to ensure the UI updates
+      if (clerk && clerk.session) {
+        try {
+          clerk.session.refresh().then(() => {
+            console.log('Session refreshed after navigation');
+            // Force a re-render
+            setForceUpdate(prev => prev + 1);
+          }).catch(err => {
+            console.error('Error refreshing session:', err);
+          });
+        } catch (error) {
+          console.error('Error accessing clerk.session:', error);
+        }
+      }
+    }
+  }, [clerk]);
 
   return (
     <nav className="bg-[#ff3b9a] py-4 sticky top-0 z-50">
