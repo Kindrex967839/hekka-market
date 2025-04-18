@@ -11,6 +11,7 @@ export default function CustomSignUp() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +29,7 @@ export default function CustomSignUp() {
       // Start the sign-up process with Clerk
       await signUp.create({
         emailAddress: email,
+        username,
         password
       });
 
@@ -42,10 +44,11 @@ export default function CustomSignUp() {
         // Continue anyway - Clerk will handle verification based on dashboard settings
       }
 
-      console.log("Sign-up successful, redirecting to verification page...");
+      console.log("Sign-up successful, redirecting to complete page...");
 
-      // Redirect to verification page
-      navigate("/sign-up/verify-email-address");
+      // Redirect to the complete page first, which will show a spinner
+      // before redirecting to the verification page
+      navigate("/sign-up/complete");
     } catch (err: any) {
       console.error("Error during sign-up:", err);
       setError(err.message || "An error occurred during sign-up");
@@ -84,6 +87,19 @@ export default function CustomSignUp() {
 
               <form onSubmit={handleSubmit}>
 
+                <div className="mb-4">
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                    Username
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff3b9a] focus:border-transparent"
+                    required
+                  />
+                </div>
 
                 <div className="mb-4">
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
