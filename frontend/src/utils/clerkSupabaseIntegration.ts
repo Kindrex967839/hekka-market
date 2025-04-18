@@ -158,3 +158,27 @@ export const signOutFromSupabase = async () => {
     console.error('Error signing out from Supabase:', error);
   }
 };
+
+/**
+ * Handles anonymous access to Supabase
+ * This allows unauthenticated users to access public data
+ */
+export const setupAnonymousAccess = async () => {
+  try {
+    // Check if we already have a session
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+      // We already have a session, no need to do anything
+      return true;
+    }
+
+    // For anonymous access, we'll use the anon key that's already configured
+    // This will allow access to public data based on RLS policies
+    console.log('Setting up anonymous access to Supabase');
+    return true;
+  } catch (error) {
+    console.error('Error setting up anonymous access:', error);
+    return false;
+  }
+};

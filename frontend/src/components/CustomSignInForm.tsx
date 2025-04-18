@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useSignIn } from '@clerk/clerk-react';
+import { useSignIn, useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import { getSupabaseToken } from '../utils/clerkSupabaseIntegration';
 
 export function CustomSignInForm() {
   const { isLoaded, signIn, setActive } = useSignIn();
@@ -49,6 +50,9 @@ export function CustomSignInForm() {
     }
   };
 
+  // Get the user object
+  const { user } = useUser();
+
   // Handle the password step
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,16 +69,34 @@ export function CustomSignInForm() {
       if (result.status === 'complete') {
         // Sign-in successful, set the active session
         await setActive({ session: result.createdSessionId });
-        // Redirect to the home page
-        navigate('/');
+
+        // Wait a moment for the session to be fully established
+        setTimeout(async () => {
+          // If we have a user, set up the Supabase token
+          if (user) {
+            try {
+              const sessionData = await getSupabaseToken(user);
+              if (sessionData) {
+                console.log('Successfully set up Supabase session after sign-in');
+              } else {
+                console.error('Failed to set up Supabase session after sign-in');
+              }
+            } catch (tokenErr) {
+              console.error('Error setting up Supabase token:', tokenErr);
+            }
+          }
+
+          // Redirect to the home page with a hard refresh to ensure everything is in sync
+          window.location.href = '/';
+        }, 500);
       } else {
         console.log('Unexpected sign-in completion status:', result.status);
         setError('An unexpected error occurred');
+        setLoading(false);
       }
     } catch (err: any) {
       console.error('Error completing sign-in:', err);
       setError(err.message || 'An error occurred during sign-in');
-    } finally {
       setLoading(false);
     }
   };

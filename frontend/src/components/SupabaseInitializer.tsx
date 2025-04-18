@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ensureProductImagesBucket } from 'utils/storageUtils';
 import { testSupabaseConnection } from 'utils/supabaseClient';
+import { setupAnonymousAccess } from 'utils/clerkSupabaseIntegration';
 import { SupabaseBucketGuide } from './SupabaseBucketGuide';
 
 /**
@@ -24,6 +25,10 @@ export function SupabaseInitializer() {
           setError('Failed to connect to Supabase. Please check your credentials.');
           return;
         }
+
+        // Set up anonymous access to Supabase
+        // This ensures that even unauthenticated users can access public data
+        await setupAnonymousAccess();
 
         // Check if the bucket exists in localStorage (for cases where RLS prevents listing buckets)
         const forceBucketExists = localStorage.getItem('bucket-exists') === 'true';
