@@ -66,7 +66,7 @@ export const featuredProducts: Product[] = [
     title: "Video Editing Masterclass",
     description: "10-hour course covering advanced techniques for professional video production.",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1574717025058-2f8737d2e2b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
     category: "Courses",
     seller: {
       id: "seller6",

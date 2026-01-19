@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env.local
 .env
+
+# Supabase credentials
+new_supabase_creds.md

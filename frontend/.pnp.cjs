@@ -11656,16 +11656,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@grapesjs/react", "virtual:96d4b0469a1bb266be40a631ecfaf811c63af901f58dbf52ed02f330beea42ade2a5746f4a8fe4d541539e55d2d004ac3489885318e00352b902861044a59bbb#npm:2.0.0"],\
           ["@types/grapesjs", null],\
-          ["@types/react", "npm:18.2.32"],\
-          ["@types/react-dom", "npm:18.2.7"],\
+          ["@types/react", "npm:19.0.10"],\
+          ["@types/react-dom", "virtual:47286fe980ceeedc4e3d6e924b88171b32891f1f764f54349abbcbf41d0d9eb707db852cec6c9ac0e2fcffc32c448c2c24adcd0686298b2934a8d7abe5aeb68c#npm:19.0.4"],\
           ["grapesjs", "npm:0.22.5"],\
           ["react", "npm:18.2.0"],\
           ["react-dom", "virtual:96d4b0469a1bb266be40a631ecfaf811c63af901f58dbf52ed02f330beea42ade2a5746f4a8fe4d541539e55d2d004ac3489885318e00352b902861044a59bbb#npm:18.2.0"]\
         ],\
         "packagePeers": [\
           "@types/grapesjs",\
-          "@types/react-dom",\
-          "@types/react",\
           "grapesjs",\
           "react-dom",\
           "react"\
@@ -28404,6 +28402,22 @@ const RAW_RUNTIME_STATE =
           ["csstype", "npm:3.1.3"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:19.0.10", {\
+        "packageLocation": "../../../.yarn/berry/cache/@types-react-npm-19.0.10-ad7744c06a-10c0.zip/node_modules/@types/react/",\
+        "packageDependencies": [\
+          ["@types/react", "npm:19.0.10"],\
+          ["csstype", "npm:3.1.3"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:19.0.8", {\
+        "packageLocation": "../../../.yarn/berry/cache/@types-react-npm-19.0.8-d37f2f1ef6-10c0.zip/node_modules/@types/react/",\
+        "packageDependencies": [\
+          ["@types/react", "npm:19.0.8"],\
+          ["csstype", "npm:3.1.3"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["@types/react-beautiful-dnd", [\
@@ -28434,6 +28448,24 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@types/react", "npm:18.2.43"],\
           ["@types/react-dom", "npm:18.2.7"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:19.0.4", {\
+        "packageLocation": "../../../.yarn/berry/cache/@types-react-dom-npm-19.0.4-d87a27eb4c-10c0.zip/node_modules/@types/react-dom/",\
+        "packageDependencies": [\
+          ["@types/react-dom", "npm:19.0.4"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:47286fe980ceeedc4e3d6e924b88171b32891f1f764f54349abbcbf41d0d9eb707db852cec6c9ac0e2fcffc32c448c2c24adcd0686298b2934a8d7abe5aeb68c#npm:19.0.4", {\
+        "packageLocation": "./.yarn/__virtual__/@types-react-dom-virtual-a6449066af/4/.yarn/berry/cache/@types-react-dom-npm-19.0.4-d87a27eb4c-10c0.zip/node_modules/@types/react-dom/",\
+        "packageDependencies": [\
+          ["@types/react", "npm:19.0.10"],\
+          ["@types/react-dom", "virtual:47286fe980ceeedc4e3d6e924b88171b32891f1f764f54349abbcbf41d0d9eb707db852cec6c9ac0e2fcffc32c448c2c24adcd0686298b2934a8d7abe5aeb68c#npm:19.0.4"]\
+        ],\
+        "packagePeers": [\
+          "@types/react"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -51788,7 +51820,6 @@ const RAW_RUNTIME_STATE =
           ["react-map-gl", "virtual:96d4b0469a1bb266be40a631ecfaf811c63af901f58dbf52ed02f330beea42ade2a5746f4a8fe4d541539e55d2d004ac3489885318e00352b902861044a59bbb#npm:7.1.7"]\
         ],\
         "packagePeers": [\
-          "@types/mapbox-gl",\
           "@types/maplibre-gl",\
           "@types/react-dom",\
           "@types/react",\
@@ -57718,14 +57749,13 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/uncontrollable-virtual-62f93d2ad2/4/.yarn/berry/cache/uncontrollable-npm-7.2.1-85b30af5c9-10c0.zip/node_modules/uncontrollable/",\
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.26.9"],\
-          ["@types/react", "npm:18.2.32"],\
+          ["@types/react", "npm:19.0.8"],\
           ["invariant", "npm:2.2.4"],\
           ["react", "npm:18.2.0"],\
           ["react-lifecycles-compat", "npm:3.0.4"],\
           ["uncontrollable", "virtual:bf26d6ab47b76cedb0aaf10fa1c8a9681fd62e7469c73b8632f3b8598b0cdb753e64c58ee34c0e3600a049c1b9307051835cf939b1195d06cd5cc362895ce6d9#npm:7.2.1"]\
         ],\
         "packagePeers": [\
-          "@types/react",\
           "react"\
         ],\
         "linkType": "HARD"\
@@ -63545,28 +63575,40 @@ class FileHandle {
   sync() {
     throw new Error(`Method not implemented.`);
   }
-  async read(bufferOrOptions, offset, length, position) {
+  async read(bufferOrOptions, offsetOrOptions, length, position) {
     try {
       this[kRef](this.read);
       let buffer;
-      if (!Buffer.isBuffer(bufferOrOptions)) {
-        bufferOrOptions ??= {};
-        buffer = bufferOrOptions.buffer ?? Buffer.alloc(16384);
-        offset = bufferOrOptions.offset || 0;
-        length = bufferOrOptions.length ?? buffer.byteLength;
-        position = bufferOrOptions.position ?? null;
+      let offset;
+      if (!ArrayBuffer.isView(bufferOrOptions)) {
+        buffer = bufferOrOptions?.buffer ?? Buffer.alloc(16384);
+        offset = bufferOrOptions?.offset ?? 0;
+        length = bufferOrOptions?.length ?? buffer.byteLength - offset;
+        position = bufferOrOptions?.position ?? null;
+      } else if (typeof offsetOrOptions === `object` && offsetOrOptions !== null) {
+        buffer = bufferOrOptions;
+        offset = offsetOrOptions?.offset ?? 0;
+        length = offsetOrOptions?.length ?? buffer.byteLength - offset;
+        position = offsetOrOptions?.position ?? null;
       } else {
         buffer = bufferOrOptions;
+        offset = offsetOrOptions ?? 0;
+        length ??= 0;
       }
-      offset ??= 0;
-      length ??= 0;
       if (length === 0) {
         return {
           bytesRead: length,
           buffer
         };
       }
-      const bytesRead = await this[kBaseFs].readPromise(this.fd, buffer, offset, length, position);
+      const bytesRead = await this[kBaseFs].readPromise(
+        this.fd,
+        // FIXME: FakeFS should support ArrayBufferViews directly
+        Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer.buffer, buffer.byteOffset, buffer.byteLength),
+        offset,
+        length,
+        position
+      );
       return {
         bytesRead,
         buffer
@@ -65961,7 +66003,8 @@ class ZipFS extends BasePortableFakeFS {
         const entries = Array.from(directoryListing, (name) => {
           return Object.assign(this.statImpl(`lstat`, ppath.join(p, name)), {
             name,
-            path: PortablePath.dot
+            path: PortablePath.dot,
+            parentPath: PortablePath.dot
           });
         });
         for (const entry of entries) {
@@ -65972,7 +66015,8 @@ class ZipFS extends BasePortableFakeFS {
           for (const child of subListing) {
             entries.push(Object.assign(this.statImpl(`lstat`, ppath.join(p, subPath, child)), {
               name: child,
-              path: subPath
+              path: subPath,
+              parentPath: subPath
             }));
           }
         }
@@ -65993,7 +66037,8 @@ class ZipFS extends BasePortableFakeFS {
       return Array.from(directoryListing, (name) => {
         return Object.assign(this.statImpl(`lstat`, ppath.join(p, name)), {
           name,
-          path: void 0
+          path: void 0,
+          parentPath: void 0
         });
       });
     } else {
@@ -66468,6 +66513,7 @@ function applyPatch(pnpapi, opts) {
       const optionNames = new Set(Object.keys(options));
       optionNames.delete(`paths`);
       optionNames.delete(`plugnplay`);
+      optionNames.delete(`conditions`);
       if (optionNames.size > 0) {
         throw makeError(
           ErrorCode.UNSUPPORTED,
@@ -66496,11 +66542,15 @@ function applyPatch(pnpapi, opts) {
       const issuerApi = apiPath !== null ? opts.manager.getApiEntry(apiPath, true).instance : null;
       try {
         if (issuerApi !== null) {
-          resolution = issuerApi.resolveRequest(request, path !== null ? `${path}/` : null);
+          resolution = issuerApi.resolveRequest(request, path !== null ? `${path}/` : null, {
+            conditions: options?.conditions
+          });
         } else {
           if (path === null)
             throw new Error(`Assertion failed: Expected the path to be set`);
-          resolution = originalModuleResolveFilename.call(require$$0.Module, request, module || makeFakeParent(path), isMain);
+          resolution = originalModuleResolveFilename.call(require$$0.Module, request, module || makeFakeParent(path), isMain, {
+            conditions: options?.conditions
+          });
         }
       } catch (error) {
         firstError = firstError || error;

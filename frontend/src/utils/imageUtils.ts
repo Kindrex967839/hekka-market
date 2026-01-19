@@ -51,5 +51,5 @@ export const getFallbackImageUrl = (productId: string): string => {
   const colorIndex = parseInt(productId.substring(0, 8), 16) % colors.length;
   const color = colors[colorIndex];
 
-  return `https://via.placeholder.com/800x600/${color}/ffffff?text=Product+${productId.substring(0, 4)}`;
+  return `https://placehold.co/800x600/${color}/FFF?text=Product+${productId.substring(0, 4)}`;
 };
