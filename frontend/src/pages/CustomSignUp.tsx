@@ -44,11 +44,10 @@ export default function CustomSignUp() {
         // Continue anyway - Clerk will handle verification based on dashboard settings
       }
 
-      console.log("Sign-up successful, redirecting to complete page...");
+      console.log("Sign-up successful, redirecting to verification page...");
 
-      // Redirect to the complete page first, which will show a spinner
-      // before redirecting to the verification page
-      navigate("/sign-up/complete");
+      // Redirect directly to the verification page
+      navigate("/sign-up/verify-email-address");
     } catch (err: any) {
       console.error("Error during sign-up:", err);
       setError(err.message || "An error occurred during sign-up");

@@ -145,19 +145,32 @@ export const getProduct = async (productId: string) => {
 };
 
 /**
- * Get products created by the current user (including unpublished)
+ * Get products in the same category, excluding the current product
  */
-export const getMyProducts = async () => {
-  const { data: session } = await supabase.auth.getSession();
+export const getSimilarProducts = async (productId: string, categoryId: string, limit = 4) => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, categories(name)')
+    .eq('category_id', categoryId)
+    .eq('is_published', true)
+    .neq('id', productId)
+    .limit(limit);
 
-  if (!session.session?.user.id) {
-    return { data: null, error: new Error('Not authenticated') };
+  return { data, error };
+};
+
+/**
+ * Get products created by a specific user
+ */
+export const getMyProducts = async (userId: string) => {
+  if (!userId) {
+    return { data: null, error: new Error('User ID is required') };
   }
 
   const { data, error } = await supabase
     .from('products')
     .select('*, categories(name)')
-    .eq('seller_id', session.session.user.id)
+    .eq('seller_id', userId)
     .order('created_at', { ascending: false });
 
   return { data, error };
@@ -173,18 +186,16 @@ export const createProduct = async (product: {
   category_id: string;
   product_type: string;
   is_published?: boolean;
-}) => {
-  const { data: session } = await supabase.auth.getSession();
-
-  if (!session.session?.user.id) {
-    return { data: null, error: new Error('Not authenticated') };
+}, userId: string) => {
+  if (!userId) {
+    return { data: null, error: new Error('User ID is required') };
   }
 
   const { data, error } = await supabase
     .from('products')
     .insert({
       ...product,
-      seller_id: session.session.user.id,
+      seller_id: userId,
       is_published: product.is_published || false,
     })
     .select();
@@ -202,12 +213,18 @@ export const updateProduct = async (productId: string, updates: {
   category_id?: string;
   product_type?: string;
   is_published?: boolean;
-}) => {
-  const { data, error } = await supabase
+}, userId?: string) => {
+  // If userId is provided, we can add a check or just rely on RLS
+  const query = supabase
     .from('products')
     .update(updates)
-    .eq('id', productId)
-    .select();
+    .eq('id', productId);
+
+  if (userId) {
+    query.eq('seller_id', userId);
+  }
+
+  const { data, error } = await query.select();
 
   return { data, error };
 };
@@ -265,7 +282,13 @@ export const uploadProductImage = async ({
     .upload(filePath, file);
 
   if (uploadError) {
-    // If we get a permission error but we know the bucket exists, try to provide a better error message
+    console.error('Supabase error uploading image:', {
+      message: uploadError.message,
+      details: (uploadError as any).details,
+      hint: (uploadError as any).hint,
+      code: (uploadError as any).code
+    });
+    // If we get a permission error...
     if (forceBucketExists && uploadError.message && (uploadError.message.includes('permission') || uploadError.message.includes('policy'))) {
       console.error('Permission error uploading to bucket. You may need to set up proper RLS policies:', uploadError);
       return {

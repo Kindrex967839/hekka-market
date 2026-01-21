@@ -14,23 +14,6 @@ export default function SignIn() {
   // Log the current path to help with debugging
   console.log('SignIn component rendered with path:', location.pathname);
 
-  // Handle factor-one path if it somehow gets here
-  useEffect(() => {
-    if (location.pathname.includes('factor-one')) {
-      // If we're on the factor-one path, sign out and redirect to sign-in
-      const handleFactorOne = async () => {
-        try {
-          await signOut();
-          navigate('/sign-in', { replace: true });
-        } catch (error) {
-          console.error('Error handling factor-one redirect:', error);
-        }
-      };
-
-      handleFactorOne();
-    }
-  }, [location.pathname, navigate, signOut]);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Nav />

@@ -7,7 +7,8 @@ export function CustomSignInForm() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [step, setStep] = useState<'email' | 'password'>('email');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'email' | 'password' | 'factor-two'>('email');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -70,33 +71,72 @@ export function CustomSignInForm() {
         // Sign-in successful, set the active session
         await setActive({ session: result.createdSessionId });
 
-        // Wait a moment for the session to be fully established
-        setTimeout(async () => {
-          // If we have a user, set up the Supabase token
-          if (user) {
-            try {
-              const sessionData = await getSupabaseToken(user);
-              if (sessionData) {
-                console.log('Successfully set up Supabase session after sign-in');
-              } else {
-                console.error('Failed to set up Supabase session after sign-in');
-              }
-            } catch (tokenErr) {
-              console.error('Error setting up Supabase token:', tokenErr);
-            }
-          }
+        // Redirect to the home page with a hard refresh to ensure everything is in sync
+        // The ClerkSupabaseIntegration component will handle the Supabase session setup
+        window.location.href = '/';
+      } else if (result.status === 'needs_second_factor') {
+        // Find a factor that needs preparation (like email or phone)
+        const factor = result.supportedSecondFactors.find(
+          (f) => (f.strategy as string) === 'phone_code' || (f.strategy as string) === 'email_code'
+        );
 
-          // Redirect to the home page with a hard refresh to ensure everything is in sync
-          window.location.href = '/';
-        }, 500);
+        if (factor) {
+          await signIn.prepareSecondFactor({ strategy: factor.strategy as any });
+        }
+
+        // Move to the second factor step
+        setStep('factor-two');
+        setLoading(false);
       } else {
         console.log('Unexpected sign-in completion status:', result.status);
-        setError('An unexpected error occurred');
+        setError('An unexpected error occurred. Status: ' + result.status);
         setLoading(false);
       }
     } catch (err: any) {
       console.error('Error completing sign-in:', err);
       setError(err.message || 'An error occurred during sign-in');
+      setLoading(false);
+    }
+  };
+
+  // Handle the second factor step
+  const handleSecondFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    if (!signIn) return;
+
+    try {
+      // Find the available second factor strategies
+      const factor = signIn.supportedSecondFactors.find(
+        (f) => (f.strategy as string) === 'phone_code' || (f.strategy as string) === 'email_code' || (f.strategy as string) === 'totp'
+      );
+
+      if (!factor) {
+        setError('No supported second factor method found');
+        setLoading(false);
+        return;
+      }
+
+      // Attempt to complete the sign-in with the code
+      const result = await signIn.attemptSecondFactor({
+        strategy: factor.strategy as any,
+        code,
+      });
+
+      if (result.status === 'complete') {
+        // Sign-in successful, set the active session
+        await setActive({ session: result.createdSessionId });
+        window.location.href = '/';
+      } else {
+        console.log('Unexpected MFA status:', result.status);
+        setError('Verification failed. Status: ' + result.status);
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error('Error completing MFA:', err);
+      setError(err.message || 'Verification failed');
       setLoading(false);
     }
   };
@@ -136,6 +176,59 @@ export function CustomSignInForm() {
           ) : (
             'Continue'
           )}
+        </button>
+      </form>
+    );
+  }
+
+  // Render the second factor step
+  if (step === 'factor-two') {
+    return (
+      <form onSubmit={handleSecondFactorSubmit} className="space-y-4">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+        <div className="text-center mb-4">
+          <p className="text-gray-600 text-sm">
+            Please enter the verification code sent to your device.
+          </p>
+        </div>
+        <div>
+          <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
+            Verification Code
+          </label>
+          <input
+            id="code"
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff3b9a] focus:border-transparent text-center text-2xl tracking-widest"
+            placeholder="000000"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-[#ff3b9a] hover:bg-[#ff3b9a]/80 text-white w-full py-3 rounded-lg font-medium disabled:opacity-50"
+        >
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>
+              Verifying...
+            </span>
+          ) : (
+            'Verify'
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setStep('password')}
+          className="text-gray-500 text-sm font-medium w-full text-center"
+        >
+          Back to Password
         </button>
       </form>
     );

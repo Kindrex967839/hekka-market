@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export function Hero() {
+  const navigate = useNavigate();
   return (
     <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-500 py-16 md:py-24">
       <div className="container mx-auto px-4">
@@ -19,10 +21,16 @@ export function Hero() {
                 Join creators selling digital products, downloads, and subscriptions to buyers around the world.
               </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <button className="bg-black text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-900 transition-all">
+                <button
+                  onClick={() => navigate("/explore")}
+                  className="bg-black text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-900 transition-all"
+                >
                   Explore Products
                 </button>
-                <button className="bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition-all">
+                <button
+                  onClick={() => navigate("/selling")}
+                  className="bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition-all"
+                >
                   Start Selling
                 </button>
               </div>

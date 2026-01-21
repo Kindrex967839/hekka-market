@@ -5,10 +5,23 @@ import type { Database } from './supabaseTypes';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Log the environment variables for debugging
-console.log('Supabase environment variables:', {
-  url: supabaseUrl,
-  key: supabaseAnonKey ? '***' + supabaseAnonKey.substring(supabaseAnonKey.length - 5) : null
+// Clerk integration state
+let currentClerkToken: string | null = null;
+
+/**
+ * Sets the Clerk JWT for all future Supabase requests
+ */
+export const setSupabaseToken = (token: string | null) => {
+  currentClerkToken = token;
+  console.log('Supabase Client: Token updated', token ? '(Authenticated)' : '(Anonymous)');
+};
+
+/**
+ * Gets the current token status for diagnostics
+ */
+export const getSupabaseTokenStatus = () => ({
+  hasToken: !!currentClerkToken,
+  tokenPreview: currentClerkToken ? currentClerkToken.substring(0, 10) + '...' : null
 });
 
 // Check if credentials are available
@@ -16,10 +29,24 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase credentials are missing. Please check your .env.local file.');
 }
 
-// Create the Supabase client
+// Create the Supabase client with a custom fetch wrapper for Clerk tokens
 export const supabase = createClient<Database>(
   supabaseUrl as string,
-  supabaseAnonKey as string
+  supabaseAnonKey as string,
+  {
+    global: {
+      fetch: (url, options: any = {}) => {
+        // If we have a Clerk token, inject it into the headers
+        // This bypasses Supabase Auth service and talks directly to the DB with the Clerk JWT
+        if (currentClerkToken) {
+          const headers = new Headers(options.headers);
+          headers.set('Authorization', `Bearer ${currentClerkToken}`);
+          options.headers = headers;
+        }
+        return fetch(url, options);
+      }
+    }
+  }
 );
 
 // Test the Supabase connection

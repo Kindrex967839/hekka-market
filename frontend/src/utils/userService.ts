@@ -6,21 +6,21 @@ import { User } from '@clerk/clerk-react';
  */
 export const syncUserProfile = async (user: User) => {
   if (!user) return null;
-  
+
   try {
     const userId = user.id;
     const email = user.primaryEmailAddress?.emailAddress;
     const firstName = user.firstName;
     const lastName = user.lastName;
     const imageUrl = user.imageUrl;
-    
+
     // Check if profile exists
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    
+
     if (existingProfile) {
       // Update existing profile
       const { data, error } = await supabase
@@ -34,10 +34,9 @@ export const syncUserProfile = async (user: User) => {
         })
         .eq('id', userId)
         .select();
-      
+
       if (error) {
-        console.error('Error updating profile:', error);
-        return null;
+        throw error;
       }
       return data;
     } else {
@@ -52,16 +51,15 @@ export const syncUserProfile = async (user: User) => {
           email: email,
         })
         .select();
-      
+
       if (error) {
-        console.error('Error creating profile:', error);
-        return null;
+        throw error;
       }
       return data;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing user profile:', error);
-    return null;
+    throw error;
   }
 };
 
@@ -75,7 +73,7 @@ export const getUserProfile = async (userId: string) => {
       .select('*')
       .eq('id', userId)
       .single();
-    
+
     if (error) throw error;
     return data;
   } catch (error) {

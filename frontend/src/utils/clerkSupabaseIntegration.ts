@@ -1,41 +1,75 @@
-import { supabase } from './supabaseClient';
-import { User } from '@clerk/clerk-react';
+import { supabase, setSupabaseToken } from './supabaseClient';
+// import { User } from '@clerk/clerk-react'; // Removing invalid import
 
 /**
- * Gets a Supabase token for the current Clerk user
- * This function should be called after a user signs in with Clerk
+ * Decodes a JWT payload without verification
  */
-export const getSupabaseToken = async (user: User) => {
-  if (!user) {
-    console.warn('No user provided to getSupabaseToken');
+export const decodeJWT = (token: string) => {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
     return null;
+  }
+};
+
+export const decodeJWTHeader = (token: string) => {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 1) return null;
+    const base64Url = parts[0];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Gets a Supabase token using the provided getToken function from useAuth()
+ */
+export const getSupabaseToken = async (getToken: (options: any) => Promise<string | null>) => {
+  if (!getToken || typeof getToken !== 'function') {
+    console.warn('No getToken function provided to getSupabaseToken');
+    return { data: null, errorMessage: "Internal Error: Auth mechanism missing." };
   }
 
   try {
     // Get the JWT token from Clerk with the 'supabase' template
-    // This requires setting up a JWT template in Clerk dashboard with the name 'supabase'
-    const token = await user.getToken({ template: 'supabase' });
+    const token = await getToken({ template: 'supabase' });
 
     if (!token) {
-      console.warn('No token returned from Clerk');
-      return null;
+      console.warn('DEBUG: No token returned from Clerk. Check JWT Template Name.');
+      return { data: null, errorMessage: "Clerk did not return a token. Check if JWT Template name is exactly 'supabase' (lowercase)." };
     }
 
-    // Set the auth token in Supabase
-    const { data, error } = await supabase.auth.setSession({
-      access_token: token as string,
-      refresh_token: '',
-    });
+    const claims = decodeJWT(token);
+    const header = decodeJWTHeader(token);
+    const alg = header?.alg || 'UNKNOWN';
 
-    if (error) {
-      console.error('Error setting Supabase session:', error);
-      return null;
-    }
+    console.log('DEBUG: Supabase Target URL:', (supabase as any).supabaseUrl);
+    console.log('DEBUG: Received Clerk JWT Algorithm:', alg);
+    console.log('DEBUG: Received Clerk JWT Claims:', claims);
 
-    return data;
-  } catch (error) {
+    // Set the token in our custom fetch handler
+    // This bypasses the Supabase Auth service (which requires UUIDs)
+    // and talks directly to the Database with the Clerk JWT.
+    setSupabaseToken(token);
+
+    console.log('DEBUG: Supabase Client configured with Clerk JWT!');
+    return { data: { user: { id: claims?.sub } }, errorMessage: null, claims };
+  } catch (error: any) {
     console.error('Error getting Supabase token:', error);
-    return null;
+    return { data: null, errorMessage: `Unknown Error: ${error.message}` };
   }
 };
 
@@ -44,7 +78,7 @@ export const getSupabaseToken = async (user: User) => {
  * This is a workaround for direct user creation in Supabase
  * In a production environment, this should be done via a secure backend API
  */
-export const createSupabaseUser = async (user: User) => {
+export const createSupabaseUser = async (user: any) => {
   if (!user) {
     console.warn('No user provided to createSupabaseUser');
     return null;
@@ -60,17 +94,9 @@ export const createSupabaseUser = async (user: User) => {
       return null;
     }
 
-    // First check if the user already exists in Supabase
-    const { data: sessionData } = await getSupabaseToken(user);
-    if (sessionData?.user) {
-      console.log('User already exists in Supabase');
-      return sessionData.user;
-    }
-
-    // In a real application, you would call a secure backend endpoint here
-    // that would use the Supabase admin API to create the user
-    // For now, we'll just try to sign in with the token and let Supabase handle it
-    return sessionData?.user;
+    // Simplified: we'll skip the user exists check and just return null 
+    // since Supabase Auth doesn't contain Clerk users.
+    return null;
   } catch (error) {
     console.error('Error creating Supabase user:', error);
     return null;
@@ -81,20 +107,15 @@ export const createSupabaseUser = async (user: User) => {
  * Syncs a Clerk user with the Supabase profiles table
  * This should be called when a user signs up or updates their profile
  */
-export const syncUserWithSupabase = async (user: User) => {
+export const syncUserWithSupabase = async (user: any) => {
   if (!user) {
     console.warn('No user provided to syncUserWithSupabase');
     return;
   }
 
   try {
-    // First ensure we have a valid Supabase session and user
-    const supabaseUser = await createSupabaseUser(user);
-
-    if (!supabaseUser) {
-      console.error('Failed to create or get Supabase user');
-      return;
-    }
+    // We don't need a Supabase Auth user record for profiles
+    // RLS will allow the profile sync if the JWT is valid
 
     // Check if the user already exists in the profiles table
     const { data: existingProfile, error: fetchError } = await supabase
@@ -150,6 +171,7 @@ export const syncUserWithSupabase = async (user: User) => {
  */
 export const signOutFromSupabase = async () => {
   try {
+    setSupabaseToken(null);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out from Supabase:', error);
@@ -165,6 +187,9 @@ export const signOutFromSupabase = async () => {
  */
 export const setupAnonymousAccess = async () => {
   try {
+    // Clear any existing Clerk token
+    setSupabaseToken(null);
+
     // Check if we already have a session
     const { data: { session } } = await supabase.auth.getSession();
 

@@ -9,7 +9,7 @@ import { getSupabaseToken, setupAnonymousAccess } from '../utils/clerkSupabaseIn
  */
 export function ClerkSupabaseIntegration() {
   const { isLoaded, user } = useUser();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const clerk = useClerk();
   const [lastVerificationStatus, setLastVerificationStatus] = useState<string | null>(null);
 
@@ -30,35 +30,22 @@ export function ClerkSupabaseIntegration() {
         if (lastVerificationStatus !== currentStatus) {
           setLastVerificationStatus(currentStatus);
 
-          // If newly verified, force a session refresh
-          if (isEmailVerified && lastVerificationStatus !== 'verified' && clerk && clerk.session) {
-            console.log('Email verification status changed to verified, refreshing session...');
-            // Force a session refresh to ensure the UI updates
-            try {
-              await clerk.session.refresh();
-              console.log('Session refreshed after email verification');
-
-              // Get a Supabase token and set up the session
-              const sessionData = await getSupabaseToken(user);
-              if (sessionData) {
-                console.log('Successfully set up Supabase session with Clerk token');
-              } else {
-                console.error('Failed to set up Supabase session with Clerk token');
-              }
-            } catch (error) {
-              console.error('Error accessing clerk.session:', error);
-            }
+          // If newly verified, we just proceed; the next getSupabaseToken call will update things
+          if (isEmailVerified && lastVerificationStatus !== 'verified') {
+            console.log('Email verification status changed to verified');
           }
         }
 
-        // Only sync with Supabase if the email is verified
-        if (isEmailVerified) {
-          // Get a Supabase token and set up the session
-          const sessionData = await getSupabaseToken(user);
-          if (!sessionData) {
-            console.error('Failed to get Supabase token');
-          }
+        // ALWAYS set up the Supabase session if user is signed in
+        const result = await getSupabaseToken(getToken);
+        if (result && !result.errorMessage) {
+          console.log('Successfully set up Supabase session with Clerk token');
+        } else {
+          console.error('Failed to set up Supabase session with Clerk token:', result?.errorMessage);
+        }
 
+        // Sync profile if email is verified
+        if (isEmailVerified) {
           syncUserProfile(user).then(profile => {
             if (profile) {
               console.log('Successfully synced user profile with Supabase');
@@ -66,8 +53,6 @@ export function ClerkSupabaseIntegration() {
               console.error('Failed to sync user profile with Supabase');
             }
           });
-        } else {
-          console.log('Waiting for email verification before syncing with Supabase');
         }
       } else {
         // User is not signed in, set up anonymous access
