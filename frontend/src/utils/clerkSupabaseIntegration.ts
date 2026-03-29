@@ -1,5 +1,4 @@
-import { supabase, setSupabaseToken } from './supabaseClient';
-// import { User } from '@clerk/clerk-react'; // Removing invalid import
+import { supabase } from './supabaseClient';
 
 /**
  * Decodes a JWT payload without verification
@@ -60,12 +59,10 @@ export const getSupabaseToken = async (getToken: (options: any) => Promise<strin
     console.log('DEBUG: Received Clerk JWT Algorithm:', alg);
     console.log('DEBUG: Received Clerk JWT Claims:', claims);
 
-    // Set the token in our custom fetch handler
-    // This bypasses the Supabase Auth service (which requires UUIDs)
-    // and talks directly to the Database with the Clerk JWT.
-    setSupabaseToken(token);
+    // Register the token fetcher in supabaseClient if needed.
+    // However, ClerkSupabaseIntegration component already does this in its useEffect.
 
-    console.log('DEBUG: Supabase Client configured with Clerk JWT!');
+    console.log('DEBUG: Supabase Client configured for dynamic Clerk JWT fetching');
     return { data: { user: { id: claims?.sub } }, errorMessage: null, claims };
   } catch (error: any) {
     console.error('Error getting Supabase token:', error);
@@ -171,7 +168,6 @@ export const syncUserWithSupabase = async (user: any) => {
  */
 export const signOutFromSupabase = async () => {
   try {
-    setSupabaseToken(null);
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out from Supabase:', error);
@@ -187,10 +183,7 @@ export const signOutFromSupabase = async () => {
  */
 export const setupAnonymousAccess = async () => {
   try {
-    // Clear any existing Clerk token
-    setSupabaseToken(null);
-
-    // Check if we already have a session
+    // For anonymous access, we'll use the anon key that's already configured
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session) {

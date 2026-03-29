@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: hekka-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hekka}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hekka_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-hekka_market}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hekka} -d ${POSTGRES_DB:-hekka_market}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hekka-network
+
+  # PgBouncer Connection Pooler
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: hekka-pgbouncer
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-hekka}:${POSTGRES_PASSWORD:-hekka_dev_password}@postgres:5432/${POSTGRES_DB:-hekka_market}
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 100
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      PGBOUNCER_RESERVE_POOL_SIZE: 5
+      PGBOUNCER_RESERVE_POOL_TIMEOUT: 3
+      PGBOUNCER_ADMIN_USERS: ${POSTGRES_USER:-hekka}
+    ports:
+      - "6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hekka-network
+
+  # Redis (optional, for caching/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: hekka-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hekka-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  hekka-network:
+    driver: bridge

@@ -70,3 +70,34 @@ USING (
 -- Categories
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Categories viewable by all" ON public.categories FOR SELECT USING (true);
+
+--------------------------------------------------------------------------------
+-- 6. STORAGE POLICIES
+--------------------------------------------------------------------------------
+-- Note: Supabase Storage uses the storage schema.
+
+DROP POLICY IF EXISTS "Public can view product images" ON storage.objects;
+CREATE POLICY "Public can view product images" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Authenticated users can upload images" ON storage.objects;
+CREATE POLICY "Authenticated users can upload images" 
+ON storage.objects FOR INSERT 
+TO authenticated 
+WITH CHECK (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Users can update/delete own images" ON storage.objects;
+CREATE POLICY "Users can update/delete own images" 
+ON storage.objects FOR ALL 
+TO authenticated 
+USING (
+  bucket_id = 'product-images' AND 
+  (
+    EXISTS (
+      SELECT 1 FROM public.products 
+      WHERE id::text = (storage.foldername(name))[1] 
+      AND seller_id = (auth.jwt() ->> 'sub')
+    )
+  )
+);

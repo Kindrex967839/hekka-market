@@ -109,7 +109,7 @@ export const getProducts = async ({
 } = {}) => {
   let query = supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(name), profiles(*)')
     .eq('is_published', true)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -137,7 +137,7 @@ export const getProducts = async ({
 export const getProduct = async (productId: string) => {
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(name), profiles(*)')
     .eq('id', productId)
     .single();
 
@@ -150,7 +150,7 @@ export const getProduct = async (productId: string) => {
 export const getSimilarProducts = async (productId: string, categoryId: string, limit = 4) => {
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(name), profiles(*)')
     .eq('category_id', categoryId)
     .eq('is_published', true)
     .neq('id', productId)
@@ -169,7 +169,7 @@ export const getMyProducts = async (userId: string) => {
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(name), profiles(*)')
     .eq('seller_id', userId)
     .order('created_at', { ascending: false });
 
@@ -213,6 +213,7 @@ export const updateProduct = async (productId: string, updates: {
   category_id?: string;
   product_type?: string;
   is_published?: boolean;
+  image_url?: string;
 }, userId?: string) => {
   // If userId is provided, we can add a check or just rely on RLS
   const query = supabase

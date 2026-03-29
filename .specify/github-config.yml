@@ -1,0 +1,49 @@
+# GitHub Integration Configuration
+github:
+  # Project Identification
+  project_name: hekka-market
+  remote_url: https://github.com/Trinitrophenol367892/hekka-market.git
+
+  # Operating Mode: hybrid | auto | manual | dev_loop
+  mode: hybrid
+
+  # Branch Settings
+  default_branch: main
+  branch_prefix: phase-
+
+  # Dev Loop Integration (not Next.js, but we can monitor)
+  dev_loop:
+    enabled: false
+    monitor_issues: false
+
+  # Auto-Mode Settings
+  auto:
+    create_pr: true
+    merge_pr: false  # Manual approval for merge
+    delete_branch_after_merge: true
+    require_tests_pass: true
+    wait_for_ci_seconds: 300
+
+  # Rollback Settings
+  rollback:
+    enabled: true
+    keep_all_phases: true
+    auto_snapshot: true
+
+  # Commit Settings
+  commits:
+    auto_commit_tasks: true
+    batch_size: 1
+    reference_task_id: true
+    push_on_batch: true
+
+  # PR Settings
+  pr:
+    auto_fill_from_tasks: true
+    labels: [phase, implementation]
+    draft: false
+
+  # Test Settings
+  tests:
+    command: make test
+    required: false  # No tests yet

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useUser, useAuth, useClerk } from '@clerk/clerk-react';
 import { syncUserProfile } from '../utils/userService';
-import { getSupabaseToken, setupAnonymousAccess } from '../utils/clerkSupabaseIntegration';
+import { setupAnonymousAccess } from '../utils/clerkSupabaseIntegration';
+import { registerTokenFetcher } from '../utils/supabaseClient';
 
 /**
  * This component handles the integration between Clerk and Supabase.
@@ -12,6 +13,11 @@ export function ClerkSupabaseIntegration() {
   const { isSignedIn, getToken } = useAuth();
   const clerk = useClerk();
   const [lastVerificationStatus, setLastVerificationStatus] = useState<string | null>(null);
+
+  // Register the token fetcher once on mount
+  useEffect(() => {
+    registerTokenFetcher(() => getToken({ template: 'supabase' }));
+  }, [getToken]);
 
   // When the user signs in or out with Clerk, sync with Supabase
   useEffect(() => {
@@ -36,13 +42,9 @@ export function ClerkSupabaseIntegration() {
           }
         }
 
-        // ALWAYS set up the Supabase session if user is signed in
-        const result = await getSupabaseToken(getToken);
-        if (result && !result.errorMessage) {
-          console.log('Successfully set up Supabase session with Clerk token');
-        } else {
-          console.error('Failed to set up Supabase session with Clerk token:', result?.errorMessage);
-        }
+        // With dynamic token fetcher registered, we don't need to manually call getSupabaseToken anymore.
+        // The fetch wrapper will handle it automatically for every request.
+        console.log('✅ AUTO-AUTH: Supabase client is ready with dynamic token fetching.');
 
         // Sync profile if email is verified
         if (isEmailVerified) {

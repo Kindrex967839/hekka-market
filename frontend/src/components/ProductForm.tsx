@@ -41,7 +41,7 @@ export function ProductForm({ initialData, onSubmit, isLoading = false }: Props)
             description: "",
             price: 0,
             product_type: "digital_download",
-            is_published: false
+            is_published: true
         }
     });
 
