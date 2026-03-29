@@ -56,12 +56,22 @@ export default function EditProduct() {
 
             // 2. Upload new images if any
             if (imageFiles.length > 0) {
+                let firstImageUrl = "";
                 for (let i = 0; i < imageFiles.length; i++) {
-                    await uploadProductImage({
+                    const uploadResult = await uploadProductImage({
                         productId: productId!,
                         file: imageFiles[i],
                         displayOrder: i // Note: In a real app, we'd handle ordering better
                     });
+
+                    if (i === 0 && uploadResult.publicUrl) {
+                        firstImageUrl = uploadResult.publicUrl;
+                    }
+                }
+
+                // If new images were uploaded, update the main image_url
+                if (firstImageUrl) {
+                    await updateProduct(productId!, { image_url: firstImageUrl }, user.id);
                 }
             }
 

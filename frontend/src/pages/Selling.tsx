@@ -1,30 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Nav } from "../components/Nav";
 import { Footer } from "../components/Footer";
 import { getMyProducts, deleteProduct } from "../utils/supabaseUtils";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { Product } from "../components/ProductCard";
-import { Plus, Edit3, Trash2, Package, DollarSign, Users, ExternalLink } from "lucide-react";
+import { Plus, Edit3, Trash2, Package, DollarSign, Users, ExternalLink, RefreshCw } from "lucide-react";
+import { getProductImageUrl } from "../utils/imageUtils";
 
 export default function Selling() {
     const navigate = useNavigate();
     const { user, isLoaded, isSignedIn } = useUser();
+    const { getToken } = useAuth();
     const [products, setProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [stats, setStats] = useState({
-        totalSales: 0,
-        activeListings: 0,
-        totalRevenue: 0
-    });
+
+    // Derive stats from products list
+    const stats = useMemo(() => {
+        const active = products.filter(p => p.is_published).length || 0;
+        return {
+            totalSales: products.reduce((acc, p) => acc + (p.sales_count || 0), 0),
+            activeListings: active,
+            totalRevenue: products.reduce((acc, p) => acc + ((p.sales_count || 0) * (parseFloat(p.price) || 0)), 0)
+        };
+    }, [products]);
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             navigate("/sign-in");
         }
         if (isLoaded && isSignedIn) {
-            fetchSellerData();
+            // Add a slight delay to handle eventual consistency if we just redirected
+            const timer = setTimeout(() => {
+                fetchSellerData();
+            }, 500);
+            return () => clearTimeout(timer);
         }
+
+        // AUTO-REFRESH: Re-fetch when window gains focus (e.g. user returns to tab)
+        const handleFocus = () => {
+            console.log("Selling: Window focused, refreshing data...");
+            fetchSellerData();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
     }, [isLoaded, isSignedIn, navigate]);
 
     const fetchSellerData = async () => {
@@ -32,20 +52,23 @@ export default function Selling() {
 
         setIsLoading(true);
         try {
+            // Success! The dynamic token fetcher handles authentication automatically.
             const { data, error } = await getMyProducts(user.id);
             if (error) throw error;
 
-            setProducts(data || []);
+            const productsWithImages = data ? [...data] : [];
 
-            // Calculate basic stats for display
-            const active = data?.filter(p => p.is_published).length || 0;
-            // In a real app, sales and revenue would come from the purchases table
-            // For now, we'll use placeholder data derived from products or mock values
-            setStats({
-                totalSales: data?.reduce((acc, p) => acc + (p.sales_count || 0), 0) || 0,
-                activeListings: active,
-                totalRevenue: data?.reduce((acc, p) => acc + ((p.sales_count || 0) * p.price), 0) || 0
-            });
+            // Try to resolve missing images
+            for (let product of productsWithImages) {
+                if (!product.image_url) {
+                    const resolvedUrl = await getProductImageUrl(product.id);
+                    if (resolvedUrl) {
+                        product.image_url = resolvedUrl;
+                    }
+                }
+            }
+
+            setProducts(productsWithImages);
         } catch (error) {
             console.error("Error fetching seller data:", error);
         } finally {
@@ -135,10 +158,20 @@ export default function Selling() {
                 {/* Products Table Area */}
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
                     <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-                            <span className="w-2 h-8 bg-[#ff3b9a] rounded-full"></span>
-                            Your Products
-                        </h2>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+                                <span className="w-2 h-8 bg-[#ff3b9a] rounded-full"></span>
+                                Your Products
+                            </h2>
+                            <button
+                                onClick={fetchSellerData}
+                                disabled={isLoading}
+                                className="p-2 text-gray-400 hover:text-[#ff3b9a] transition-all rounded-full hover:bg-gray-100"
+                                title="Refresh Data"
+                            >
+                                <RefreshCw size={20} className={isLoading ? "animate-spin" : ""} />
+                            </button>
+                        </div>
                         <span className="text-sm font-bold text-gray-500 bg-gray-200 px-3 py-1 rounded-full">
                             {products.length} Items Total
                         </span>
@@ -166,10 +199,13 @@ export default function Selling() {
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-16 h-16 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden border-2 border-transparent group-hover:border-[#ff3b9a] transition-all">
-                                                        {/* Preview image or placeholder */}
-                                                        <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400 font-bold text-xs uppercase">
-                                                            IMG
-                                                        </div>
+                                                        {product.image_url ? (
+                                                            <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-400 font-bold text-xs uppercase">
+                                                                IMG
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <div className="font-black text-gray-900 text-lg">{product.title}</div>

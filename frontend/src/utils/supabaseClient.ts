@@ -6,23 +6,33 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Clerk integration state
-let currentClerkToken: string | null = null;
+let tokenFetcher: (() => Promise<string | null>) | null = null;
 
 /**
- * Sets the Clerk JWT for all future Supabase requests
+ * Registers a function that can fetch a fresh Clerk JWT
  */
-export const setSupabaseToken = (token: string | null) => {
-  currentClerkToken = token;
-  console.log('Supabase Client: Token updated', token ? '(Authenticated)' : '(Anonymous)');
+export const registerTokenFetcher = (fetcher: () => Promise<string | null>) => {
+  tokenFetcher = fetcher;
+  console.log('Supabase Client: Dynamic token fetcher registered');
 };
 
 /**
  * Gets the current token status for diagnostics
  */
-export const getSupabaseTokenStatus = () => ({
-  hasToken: !!currentClerkToken,
-  tokenPreview: currentClerkToken ? currentClerkToken.substring(0, 10) + '...' : null
-});
+export const getSupabaseTokenStatus = async () => {
+  if (!tokenFetcher) return { hasFetcher: false, hasToken: false };
+  const token = await tokenFetcher();
+  return {
+    hasFetcher: true,
+    hasToken: !!token,
+    tokenPreview: token ? token.substring(0, 10) + '...' : null
+  };
+};
+
+/**
+ * Returns true if the client is currently configured with a token fetcher
+ */
+export const isSupabaseAuthenticated = () => !!tokenFetcher;
 
 // Check if credentials are available
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -35,13 +45,19 @@ export const supabase = createClient<Database>(
   supabaseAnonKey as string,
   {
     global: {
-      fetch: (url, options: any = {}) => {
-        // If we have a Clerk token, inject it into the headers
-        // This bypasses Supabase Auth service and talks directly to the DB with the Clerk JWT
-        if (currentClerkToken) {
-          const headers = new Headers(options.headers);
-          headers.set('Authorization', `Bearer ${currentClerkToken}`);
-          options.headers = headers;
+      fetch: async (url, options: any = {}) => {
+        // If we have a token fetcher, get a fresh token before every request
+        if (tokenFetcher) {
+          try {
+            const token = await tokenFetcher();
+            if (token) {
+              const headers = new Headers(options.headers);
+              headers.set('Authorization', `Bearer ${token}`);
+              options.headers = headers;
+            }
+          } catch (error) {
+            console.error('Supabase Client: Failed to fetch fresh token', error);
+          }
         }
         return fetch(url, options);
       }

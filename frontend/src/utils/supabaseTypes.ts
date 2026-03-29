@@ -46,6 +46,7 @@ export interface Product {
   category_id: string; // references categories.id
   seller_id: string; // references auth.users
   is_published: boolean; // whether product is publicly visible
+  image_url?: string; // main product image URL
   product_type: 'digital_download' | 'subscription' | string; // product type
   created_at: string; // timestamp
   updated_at: string; // timestamp

@@ -70,7 +70,18 @@ export default function Explore() {
         const timer = setTimeout(() => {
             fetchProducts();
         }, 300); // 300ms debounce for search
-        return () => clearTimeout(timer);
+
+        // AUTO-REFRESH: Re-fetch when window gains focus
+        const handleFocus = () => {
+            console.log("Explore: Window focused, refreshing data...");
+            fetchProducts();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, [fetchProducts]);
 
     const handleCategorySelect = (name: string, id: string) => {

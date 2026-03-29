@@ -1,0 +1,46 @@
+# Current GitHub Workflow State
+state:
+  # Attachment Status
+  attached: true
+  remote_exists: true
+  remote_url: https://github.com/Kindrex967839/hekka-market.git
+
+  # Current Phase Progress
+  current_phase:
+    number: 1
+    name: foundation
+    branch: phase-1-foundation
+    status: in_progress
+
+  # Current Task
+  current_task:
+    id: T013
+    name: Implement Cart API
+    status: pending
+
+  # Tasks Progress
+  tasks:
+    total: 35
+    completed: 8
+    in_progress: 0
+    completed_list:
+      - T001
+      - T002
+      - T003
+      - T004
+      - T005
+      - T006
+      - T007
+      - T008
+
+  # Current PR
+  pr:
+    number: null
+    url: null
+    status: null
+
+  # Snapshots
+  snapshots:
+    phase_snapshots: []
+    manual_snapshots: []
+    current_snapshot: null

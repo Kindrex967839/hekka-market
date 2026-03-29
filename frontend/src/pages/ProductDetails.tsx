@@ -5,6 +5,7 @@ import { Footer } from "../components/Footer";
 import { ProductCard, Product } from "../components/ProductCard";
 import { getProduct, getSimilarProducts } from "../utils/supabaseUtils";
 import { Loader2, ArrowLeft, ShoppingCart, ShieldCheck, Download, Zap } from "lucide-react";
+import { getFallbackImageUrl, getProductImageUrl } from "../utils/imageUtils";
 
 export default function ProductDetails() {
     const { productId } = useParams<{ productId: string }>();
@@ -25,6 +26,15 @@ export default function ProductDetails() {
         try {
             const { data, error } = await getProduct(productId!);
             if (error) throw error;
+
+            // Fallback: If image_url is missing, try to resolve it from the gallery
+            if (data && !data.image_url) {
+                const galleryImageUrl = await getProductImageUrl(productId!);
+                if (galleryImageUrl) {
+                    data.image_url = galleryImageUrl;
+                }
+            }
+
             setProduct(data);
 
             // Fetch similar products
@@ -121,7 +131,7 @@ export default function ProductDetails() {
                         <div className="relative">
                             <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100 border-4 border-white shadow-2xl relative z-10">
                                 <img
-                                    src={product.image_url || `https://source.unsplash.com/800x800/?digital,${product.categories?.name}`}
+                                    src={product.image_url || getFallbackImageUrl(product.id)}
                                     alt={product.title}
                                     className="w-full h-full object-cover"
                                 />
