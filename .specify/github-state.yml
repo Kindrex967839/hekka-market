@@ -3,7 +3,7 @@ state:
   # Attachment Status
   attached: true
   remote_exists: true
-  remote_url: https://github.com/Trinitrophenol367892/hekka-market.git
+  remote_url: https://github.com/Kindrex967839/hekka-market.git
 
   # Current Phase Progress
   current_phase:
@@ -14,20 +14,24 @@ state:
 
   # Current Task
   current_task:
-    id: T005
-    name: Implement Health Check & Logging
+    id: T013
+    name: Implement Cart API
     status: pending
 
   # Tasks Progress
   tasks:
     total: 35
-    completed: 4
+    completed: 8
     in_progress: 0
     completed_list:
       - T001
       - T002
       - T003
       - T004
+      - T005
+      - T006
+      - T007
+      - T008
 
   # Current PR
   pr:
